@@ -1,37 +1,34 @@
 section .data
-    input1 db 0
-    operator db 0
-    input2 db 0
-    result db 0
     prompt db "Entrez une expression (ex: 1 + 1): ", 0
     newline db 10, 0
 
 section .bss
+    expr resb 32
     num1 resb 4
     num2 resb 4
+    result resb 4
+    operator resb 1
 
 section .text
     global _start
 
 _start:
-    ; Afficher le prompt
-    mov eax, 4
-    mov ebx, 1
-    mov ecx, prompt
-    mov edx, 37 ; longueur du prompt
+    ; Afficher le prompt (peut être omis si appelé par Python)
+    ; mov eax, 4
+    ; mov ebx, 1
+    ; mov ecx, prompt
+    ; mov edx, 37 ; longueur du prompt
+    ; int 0x80
+
+    ; Lire l'expression
+    mov eax, 3
+    mov ebx, 0
+    mov ecx, expr
+    mov edx, 32
     int 0x80
 
-    ; Lire le premier nombre
-    call read_number
-    mov [num1], al
-
-    ; Lire l'opérateur
-    call read_operator
-    mov [operator], al
-
-    ; Lire le deuxième nombre
-    call read_number
-    mov [num2], al
+    ; Parser l'expression
+    call parse_expression
 
     ; Effectuer l'opération
     mov al, [num1]
@@ -78,22 +75,28 @@ store_result:
     xor ebx, ebx
     int 0x80
 
+parse_expression:
+    ; Lire le premier nombre
+    mov esi, expr
+    call read_number
+    mov [num1], al
+
+    ; Lire l'opérateur
+    inc esi
+    call read_operator
+    mov [operator], al
+
+    ; Lire le deuxième nombre
+    inc esi
+    call read_number
+    mov [num2], al
+    ret
+
 read_number:
-    ; Simplicité, on suppose qu'un seul caractère est lu
-    mov eax, 3
-    mov ebx, 0
-    mov ecx, num1
-    mov edx, 1
-    int 0x80
-    mov al, [num1]
+    mov al, [esi]
     sub al, '0'  ; Convertir en entier
     ret
 
 read_operator:
-    mov eax, 3
-    mov ebx, 0
-    mov ecx, operator
-    mov edx, 1
-    int 0x80
-    mov al, [operator]
+    mov al, [esi]
     ret
