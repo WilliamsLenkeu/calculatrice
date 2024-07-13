@@ -5,11 +5,12 @@ def call_nasm_program(expression):
     with open('input.txt', 'w') as f:
         f.write(f"{expression}\n")
 
-    # Exécuter le programme assembleur NASM
-    subprocess.run(['nasm', '-f', 'win32', 'calculatrice.asm'], check=True)
-    subprocess.run(['gcc', '-o', 'calculatrice', 'calculatrice.obj'], check=True)
+    # Assembler le programme avec NASM
+    subprocess.run(['nasm', '-f', 'elf32', 'calculatrice.asm'], check=True)
+    # Lier avec GCC
+    subprocess.run(['gcc', '-m32', '-o', 'calculatrice', 'calculatrice.o'], check=True)
 
     # Appeler le programme compilé
-    output = subprocess.run(['calculatrice.exe'], capture_output=True, text=True)
+    output = subprocess.run(['./calculatrice'], capture_output=True, text=True)
 
     return output.stdout.strip()
